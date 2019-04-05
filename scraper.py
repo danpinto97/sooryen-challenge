@@ -79,7 +79,7 @@ for listing in get_all_listings(page):
         #if not, we add it
         if(len(c.fetchall())==0):
             c.execute("INSERT INTO listings VALUES (?, ?, ?)", (title, price, image_url))
-    except:
+    except AttributeError:
         #if there is no available image, check if the name and price already exist
         image_url = ('N/a')
         c.execute("SELECT * FROM listings WHERE title = ? AND cost = ?",
