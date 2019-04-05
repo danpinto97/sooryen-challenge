@@ -1,5 +1,6 @@
 from bs4 import BeautifulSoup
 from requests import get
+import sqlite3
 
 
 def BeautifulSoup_it(url):
@@ -40,30 +41,56 @@ def get_title(listing):
     '''
     return listing.find('a', class_="result-title hdrlnk").text
 
-def get_image_urls(listing):
+def get_image_url(listing):
     '''
-    Returns the images for a listing. I tried to get this information from the original scrape but was unable to,
+    Returns the image for a listing. I tried to get this information from the original scrape but was unable to,
     so instead I was able to find it from url link associated with the posting. This takes longer since we need to
     get another link. I am looking into threading to potentially shorten this time.
         Args:
             listing: list obtained by get_all_listings-> 120 indexes of postings to craigslist
         Returns:
-            A list of all image urls associated with the listing, if any
+            One image url associated with the listing
     '''
-    #need to use the link tot he listing to obtain the pictures, tried doing it all in the orignal page but didn't work
+
     link = listing.find('a', class_= "result-image gallery").get('href')
     image_soup = BeautifulSoup_it(link)
-    return image_soup.find_all('img')
+    return image_soup.find_all('img')[0].get('src')
 
+db = 'challenge.db'
+conn = sqlite3.connect(db)
+c = conn.cursor()
+
+# c.execute("""CREATE TABLE listings (
+#                     title text,
+#                     cost text,
+#                     image_url text
+#                     )""")
+# conn.commit()
 
 page = BeautifulSoup_it('https://newyork.craigslist.org/search/bka')
 for listing in get_all_listings(page):
-    print(get_price(listing))
-    print(get_title(listing))
+    price = get_price(listing)
+    title = get_title(listing)
     try:
-        for image in get_image_urls(listing):
-            print(image.get('src'))
+        image_url = get_image_url(listing)
+        #we check if this has already been added by searching if the url already exists
+        c.execute("SELECT * FROM listings WHERE image_url = ?",
+                  (image_url,))
+        #if not, we add it
+        if(len(c.fetchall())==0):
+            c.execute("INSERT INTO listings VALUES (?, ?, ?)", (title, price, image_url))
     except:
-        print("N/a")
+        #if there is no available image, check if the name and price already exist
+        image_url = ('N/a')
+        c.execute("SELECT * FROM listings WHERE title = ? AND cost = ?",
+                  (title, price))
+        #again- if it doesn't exist we add it
+        if (len(c.fetchall()) == 0):
+            c.execute("INSERT INTO listings VALUES (?, ?, ?)", (title, price, image_url))
 
-    print('\n')
+    conn.commit()
+
+for row in c.fetchall():
+    print(row)
+conn.commit()
+conn.close()
