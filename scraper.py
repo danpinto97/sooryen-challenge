@@ -1,7 +1,7 @@
 from bs4 import BeautifulSoup
 from requests import get
 import sqlite3
-
+import datetime
 
 def BeautifulSoup_it(url):
     '''
@@ -60,12 +60,14 @@ db = 'challenge.db'
 conn = sqlite3.connect(db)
 c = conn.cursor()
 
-# c.execute("""CREATE TABLE listings (
-#                     title text,
-#                     cost text,
-#                     image_url text
-#                     )""")
-# conn.commit()
+c.execute("""CREATE TABLE listings(
+                    title text,
+                    cost text,
+                    image_url text,
+                    time timestamp,
+                    PRIMARY KEY(time)
+                    )""")
+conn.commit()
 
 page = BeautifulSoup_it('https://newyork.craigslist.org/search/bka')
 for listing in get_all_listings(page):
@@ -78,7 +80,7 @@ for listing in get_all_listings(page):
                   (image_url,))
         #if not, we add it
         if(len(c.fetchall())==0):
-            c.execute("INSERT INTO listings VALUES (?, ?, ?)", (title, price, image_url))
+            c.execute("INSERT INTO listings VALUES (?, ?, ?, ?)", (title, price, image_url, datetime.datetime.now()))
     except AttributeError:
         #if there is no available image, check if the name and price already exist
         image_url = ('N/a')
@@ -86,7 +88,7 @@ for listing in get_all_listings(page):
                   (title, price))
         #again- if it doesn't exist we add it
         if (len(c.fetchall()) == 0):
-            c.execute("INSERT INTO listings VALUES (?, ?, ?)", (title, price, image_url))
+            c.execute("INSERT INTO listings VALUES (?, ?, ?,?)", (title, price, image_url, datetime.datetime.now()))
 
     conn.commit()
 
