@@ -60,14 +60,14 @@ db = 'challenge.db'
 conn = sqlite3.connect(db)
 c = conn.cursor()
 
-c.execute("""CREATE TABLE listings(
-                    title text,
-                    cost text,
-                    image_url text,
-                    time timestamp,
-                    PRIMARY KEY(time)
-                    )""")
-conn.commit()
+# c.execute("""CREATE TABLE listings(
+#                     title text,
+#                     cost text,
+#                     image_url text,
+#                     time timestamp,
+#                     PRIMARY KEY(time)
+#                     )""")
+# conn.commit()
 
 page = BeautifulSoup_it('https://newyork.craigslist.org/search/bka')
 for listing in get_all_listings(page):
