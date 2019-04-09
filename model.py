@@ -75,8 +75,10 @@ class Listing(object):
         for entry in data:
             new_listing = Listing(entry[0], entry[1], entry[2], entry[3])
             most_recent_30.append(new_listing)
-        last_ts = data[29][3]
-        return most_recent_30, last_ts
+        first_ts= data[0][3]#return first timestamp for accessing previous
+        last_ts = data[29][3]#return next timestamp for accessing next
+        most_recent_30 = most_recent_30[::-1]
+        return most_recent_30, first_ts, last_ts
 
     @classmethod
     def get_more_listings(self, c, last_timestamp):
@@ -92,12 +94,28 @@ class Listing(object):
             new_listing = Listing(entry[0], entry[1], entry[2], entry[3])
             more_listings.append(new_listing)
         try:
+            first_ts = data[0][3]
             new_last_ts = data[-1][3]
-        except:#have to fix with correct error, but basically returns 0 if there is no more data
-            new_last_ts = 0
-            print(data)
-        return more_listings, new_last_ts
+        except IndexError:
+            more_listings, first_ts, new_last_ts = Listing.get_last_30(c)
+        more_listings = more_listings[::-1]
+        return more_listings, first_ts, new_last_ts
 
+    @classmethod
+    def get_previous_listings(self, c, first_timestamp):
+        previous_listings = []
+        c.execute("SELECT * FROM listings WHERE ? < time ORDER BY time ASC LIMIT 30 ",
+                  (datetime.datetime.strptime(first_timestamp, '%Y-%m-%d %H:%M:%S.%f'),))
+        data = c.fetchall()
+        for entry in data:
+            new_listing = Listing(entry[0], entry[1], entry[2], entry[3])
+            previous_listings.append(new_listing)
+        try:
+            first_ts= data[-1][3]
+            last_ts = data[0][3]
+        except IndexError:
+            previous_listings, first_ts, last_ts = Listing.get_last_30(c)
+        return previous_listings, first_ts, last_ts
 
 # testing
 if __name__ == '__main__':
@@ -105,7 +123,15 @@ if __name__ == '__main__':
     conn = sqlite3.connect(db)
     c = conn.cursor()
 
-    all_things = Listing.get_all(c)
-    print(len(all_things))
-    for item in all_things:
-        print(item.print_attributes())
+    # all_things = Listing.get_all(c)
+    # print(len(all_things))
+    # for item in all_things:
+    #     print(item.print_attributes())
+    first_30, first_ts, last_ts = Listing.get_last_30(c)
+    print('\n', first_ts, last_ts)
+    next_30, first1_ts, last1_ts = Listing.get_more_listings(c, last_ts)
+    print('\n', first1_ts, last1_ts)
+    next_30, first1_ts, last1_ts = Listing.get_more_listings(c, last1_ts)
+    print('\n', first1_ts, last1_ts)
+    prev_30, first2_ts, last2_ts = Listing.get_previous_listings(c, first1_ts)
+    print('\n', first2_ts, last2_ts)

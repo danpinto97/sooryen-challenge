@@ -1,7 +1,8 @@
 {% extends 'layout.html' %}
 
 {% block body %}
-    <ul class="card-columns">
+    <div class="container">
+        <div class="row" >
     {% for listing in listings %}
         <div class="card text-white bg-secondary mb-3 text-center" style="width: 18rem;">
                 <img class="card-img-top" src="{{listing.image}}" alt="No image available">
@@ -12,9 +13,13 @@
             </div>
         </div>
     {% endfor %}
-    </ul>
+        </div>
+    </div>
 <form action="/listings" method="POST">
     <input type="submit" name="{{last_timestamp}}" value="Load more posts">
+</form>
+<form action="/listings" method="POST">
+    <input type="submit" name="{{first_timestamp}}" value="Load previous posts" >
 </form>
 
 {% endblock %}
