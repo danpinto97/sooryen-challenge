@@ -38,7 +38,7 @@ class Listing(object):
         self.title, self.cost, self.image, self.timestamp))
 
     @classmethod
-    def get_all(self):
+    def get_all(self,c):
         '''
         Returns all listings in database
         '''
@@ -106,3 +106,6 @@ if __name__ == '__main__':
     c = conn.cursor()
 
     all_things = Listing.get_all(c)
+    print(len(all_things))
+    for item in all_things:
+        print(item.print_attributes())

@@ -5,7 +5,7 @@ db = 'challenge.db'
 conn = sqlite3.connect(db)
 c = conn.cursor()
 
-app = Flask(__name__)
+application = app = Flask(__name__)
 
 
 @app.route('/')
