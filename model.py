@@ -54,13 +54,19 @@ class Listing(object):
         '''
         Returns a listing with a matching title
         '''
-        c.execute("SELECT * FROM listings WHERE title LIKE ?",
-                  (title,))
+        search_results = []
+        title_search = "%" + title + "%"
+        c.execute("SELECT * FROM listings WHERE title LIKE ? LIMIT 50",
+                  (title_search,))
         results = c.fetchall()
         if len(results) == 0:
-            return 'Not available'
+            return search_results, datetime.datetime.now(), datetime.datetime.now()
         else:
-            return results
+
+            for entry in results:
+                new_listing = Listing(entry[0], entry[1], entry[2], entry[3])
+                search_results.append(new_listing)
+            return search_results, results[0][3], results[-1][3]
 
     @classmethod
     def get_last_30(self, c):
@@ -127,11 +133,12 @@ if __name__ == '__main__':
     # print(len(all_things))
     # for item in all_things:
     #     print(item.print_attributes())
-    first_30, first_ts, last_ts = Listing.get_last_30(c)
-    print('\n', first_ts, last_ts)
-    next_30, first1_ts, last1_ts = Listing.get_more_listings(c, last_ts)
-    print('\n', first1_ts, last1_ts)
-    next_30, first1_ts, last1_ts = Listing.get_more_listings(c, last1_ts)
-    print('\n', first1_ts, last1_ts)
-    prev_30, first2_ts, last2_ts = Listing.get_previous_listings(c, first1_ts)
-    print('\n', first2_ts, last2_ts)
+    # first_30, first_ts, last_ts = Listing.get_last_30(c)
+    # print('\n', first_ts, last_ts)
+    # next_30, first1_ts, last1_ts = Listing.get_more_listings(c, last_ts)
+    # print('\n', first1_ts, last1_ts)
+    # next_30, first1_ts, last1_ts = Listing.get_more_listings(c, last1_ts)
+    # print('\n', first1_ts, last1_ts)
+    # prev_30, first2_ts, last2_ts = Listing.get_previous_listings(c, first1_ts)
+    # print('\n', first2_ts, last2_ts)
+    print(Listing.get_by_title('Ch', c)[0][2].print_attributes())

@@ -1,5 +1,8 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, redirect, url_for
 from model import Listing
+from wtforms import StringField, Form, SubmitField
+from wtforms.validators import DataRequired
+
 import sqlite3
 db = 'challenge.db'
 conn = sqlite3.connect(db)
@@ -7,6 +10,14 @@ c = conn.cursor()
 
 application = app = Flask(__name__)
 
+class SearchForm(Form):
+    search = StringField('search', [DataRequired()])
+    submit = SubmitField('Search',
+                         render_kw={'class': 'btn btn-success btn-block'})
+    def setSearch(self, search):
+        self.search = search
+    def getSearch(self):
+        return self.search
 
 @app.route('/')
 def index():
@@ -39,11 +50,18 @@ def listings():
             listings, first_timestamp, last_timestamp = Listing.get_last_30(cursor)
             return render_template('listings.html', listings = listings, first_timestamp = first_timestamp,last_timestamp= last_timestamp)
 
-@app.route('/search', methods=['GET'])
+@app.route('/search', methods=['GET', 'POST'])
 def search():
     with sqlite3.connect('challenge.db') as conn:
         cursor = conn.cursor()
-        return render_template('search.html')
+        form = SearchForm()
+        if request.method == 'POST':
+            for key, val in request.form.to_dict().items():
+                listings, first_timestamp, last_timestamp = Listing.get_by_title(val, cursor)
+                return render_template('listings.html', listings = listings, first_timestamp = first_timestamp,last_timestamp= last_timestamp)
+        return render_template('search.html', form=form)
+
+
 
 if __name__ == '__main__':
     app.run()
